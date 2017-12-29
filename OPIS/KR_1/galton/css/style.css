@@ -1,0 +1,59 @@
+
+body {
+  padding: 1em;
+  background: transparent;
+}
+.container{
+  border: 1px solid grey;
+  border-radius: 50%;
+}
+
+#player {
+  text-align: center;
+  width: 55vw;
+  margin: 5em auto;
+  position: relative;
+}
+#player button {
+  position: absolute;
+  z-index: 1;
+  padding: 1em 2em;
+  margin: 0;
+  border: none;
+  border-radius: 5px;
+  text-transform: uppercase;
+  color: white;
+  cursor: pointer;
+}
+
+.player_rotate{
+  top: 0.5em;
+  right: 2em;
+}
+
+.player_stop{
+  top: 4.5em;
+  right: 2em;
+}
+
+#gravity {
+  height: calc(55vw * .6);
+  width: 4em;
+  -webkit-appearance: slider-vertical;
+     -moz-appearance: slider-vertical;
+          appearance: slider-vertical;
+  -webkit-transform: rotate(180deg);
+          transform: rotate(180deg);
+}
+
+canvas {
+  width: calc(100% - 4em);
+  -webkit-transition: -webkit-transform 1s;
+  transition: -webkit-transform 1s;
+  transition: transform 1s;
+  transition: transform 1s, -webkit-transform 1s;
+}
+canvas.flip {
+  -webkit-transform: rotate(180deg);
+          transform: rotate(180deg);
+}
