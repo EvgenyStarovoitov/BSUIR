@@ -70,3 +70,4 @@ let poly = new Polynomial(1,5,7,9,4)
 let moly = new Polynomial(2,12,4,6)
 let q = moly.eval(3)
 q
+
