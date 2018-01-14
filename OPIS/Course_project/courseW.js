@@ -1,3 +1,5 @@
+ // Обьявление переменных
+
     let mimi=0,
         inputText = document.querySelector('.text_value'),
         canvasElem = document.querySelector('.canvas__row'),
@@ -7,14 +9,20 @@
         ctx,
         flag = false,
         prevX = 0,
-        currX = 0,
         prevY = 0,
+        currX = 0,
         currY = 0,
         dot_flag = false,
-        x = "black",
+        color = "black",
         y = 2,
         widthElem = window.innerWidth,
-        heightElem = window.innerHeight;
+        heightElem = window.innerHeight,
+        canvasW = canvasElem.clientWidth,
+        canvasH = canvasElem.clientHeight,
+        clicking = false;
+
+        console.log(canvasH,canvasW,"\n",widthElem,heightElem)
+// Секция по работе с Web Audio API
 
     class Sound {
         constructor(gainAmount,history,log,speed,fadeTime,elm){
@@ -26,40 +34,38 @@
             this.elm = elm;
             this.elm.addEventListener('mousedown', this.onMouseDown.bind(this));
             this.elm.addEventListener('mouseup', this.onMouseUp.bind(this));
-            this.elm.addEventListener('mousemove',this.onMouseMove());
+            this.elm.addEventListener('mousemove',this.onMouseMove.bind(this));
             console.log("create a sound element");
         };
-        onMouseDown(event){
+        onMouseDown(){
             console.log('md');
+            clicking = true;
             if (this.osc_) {
-            return;
+                return;
             }
-            this.updatePointer(event);
             this.osc_ = this.createOscillator_();
-            this.lastFreq = this.getLastFrequency();
-            this.osc_.frequency.setValueAtTime(mimi, context.currentTime); 
+            // this.osc_.frequency.setValueAtTime(mimi, context.currentTime); 
         }
         onMouseUp(){
+            clicking = false;
             console.log('mu');
             this.deleteOscillator_();
-            this.lastFreq = null;
         }
         onMouseMove(){
             console.log('mm');
-            if (this.osc_) {
-            return;
-            }
-            this.osc_ = this.createOscillator_();
-            this.lastFreq = this.getLastFrequency();
-            this.osc_.frequency.setValueAtTime(mimi, context.currentTime);  
-            // this.updatePage()
+            if (clicking==false) {
+                return;
+            };
+            this.updatePage()
+            console.log('create a osc');
+
         }
         createOscillator_(){
             let gain = context.createGain();
+            let osc = context.createOscillator();
             gain.value = 0;
             gain.connect(context.destination);
             this.gain_ = gain;
-            let osc = context.createOscillator();
             osc.connect(gain);
             gain.gain.linearRampToValueAtTime(this.gainAmount,
                 context.currentTime + this.fadeTime);
@@ -74,59 +80,28 @@
                 this.osc_ = null;
             };
         };
-        getLastFrequency(){
-            let x = this.lastX;
-            let y = this.lastY;
-            let percent = 1 - (y / this.height);
-            let nyquist = context.sampleRate/2;
-            if (this.log) {
-            percent = this.logScale_(percent * 1000, 1000) / 1000;
-            };
-            return percent * nyquist;
-        };
-        updatePointer(event){
-            console.log("update\n", event.type)
-            event = event || {};
-            let type = event.type || '';
-            if (type.indexOf('mouse') == 0) {
-            this.lastX = event.pageX;
-            this.lastY = event.pageY;
-            } else if (type.indexOf('touch') == 0) {
-            this.lastX = event.touches[0].pageX;
-            this.lastY = event.touches[0].pageY;
-            } else {
-            this.lastX = null;
-            this.lastY = null;
-            }
-        };
-        // updatePage(evenet){
-        //     this.getLastFrequency()
-        //     event = event || {};
-        //     this.lastX = event.pageX;
-        //     this.lastY = event.pageY;
-        //     currX = (window.Event) ? event.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-        
-        //     currY = (window.Event) ? event.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
-            
-        //     this.osc_.frequency.value = (mimi/widthElem)
-        //     console.log(this.osc_.frequency.value,"\n",this.lastY,"\n",widthElem)
-        //     // gainNode.gain.value = (currY/heightElem) * maxVol;
-        // }
+        updatePage(){
+            this.osc_.frequency.setValueAtTime(mimi, context.currentTime);  
+            console.log(this.osc_.frequency.value, mimi)
+        }
     };
 
+//   Секция элемента отрисовки
+
     class CanvasEl {
-        constructor(width,height){
+        constructor(width,height,btn){
             this.width = width;
             this.height = height;
             this.initCanvas();
+            this.btn = btn;
+            this.btn.addEventListener('click', this.clear.bind(this) )
+
         }
         initCanvas(){
             ctx = canvasElem.getContext("2d");
             canvasElem.width = this.width;
             canvasElem.height = this.height;
-    
-            console.log("init draw func", canvasElem)
-    
+            console.log("init draw func"); 
             canvasElem.addEventListener("mousemove", (e)=> {
                 this.findCoord('move', e)
             }, false);
@@ -144,10 +119,10 @@
             ctx.beginPath();
             ctx.moveTo(prevX, prevY);
             ctx.lineTo(currX, currY);
-            ctx.strokeStyle = x;
+            ctx.strokeStyle = color;
             ctx.lineWidth = y;
             ctx.stroke();
-            ctx.closePath();    
+            ctx.closePath();
         };
         clear(){
             let m = confirm("Очистить холст?");
@@ -165,15 +140,15 @@
                 dot_flag = true;
                 if (dot_flag) {
                     ctx.beginPath();
-                    ctx.fillStyle = x;
+                    ctx.fillStyle = color;
                     ctx.fillRect(currX, currY, 2, 2);
                     ctx.closePath();
                     dot_flag = false;
-                }
-            }
+                };
+            };
             if (res == 'up' || res == "out") {
                 flag = false;
-            }
+            };
             if (res == 'move') {
                 if (flag) {
                     prevX = currX;
@@ -181,88 +156,17 @@
                     currX = e.clientX;
                     currY = e.clientY;
                     this.draw();
-                }
-            }
-        }
-    }
+                };
+            };
+        };
+    };
 
-    // let initCanvas = ()=> {
-    //     ctx = canvasElem.getContext("2d");
-    //     canvasElem.width = widthElem;
-    //     canvasElem.height = heightElem;
+// Создаем обьекты класса и добавление прослышка событий на обьекты
 
-    //     console.log("init draw func")
-
-    //     canvasElem.addEventListener("mousemove", function (e) {
-    //         findxy('move', e)
-    //     }, false);
-    //     canvasElem.addEventListener("mousedown", function (e) {
-    //         findxy('down', e)
-    //     }, false);
-    //     canvasElem.addEventListener("mouseup", function (e) {
-    //         findxy('up', e)
-    //     }, false);
-    //     canvasElem.addEventListener("mouseout", function (e) {
-    //         findxy('out', e)
-    //     }, false);
-    // }
-
-    // let draw = () => {
-    //     ctx.beginPath();
-    //     ctx.moveTo(prevX, prevY);
-    //     ctx.lineTo(currX, currY);
-    //     ctx.strokeStyle = x;
-    //     ctx.lineWidth = y;
-    //     ctx.stroke();
-    //     ctx.closePath();
-    // }
-
-    // let clear = () => {
-    //     let m = confirm("Очистить холст?");
-    //     if (m) {
-    //         ctx.clearRect(0, 0, widthElem, heightElem);
-    //     }
-    // }
-
-    // let findxy = (res, e) => {
-    //     if (res == 'down') {
-    //         prevX = currX;
-    //         prevY = currY;
-    //         currX = e.clientX; 
-    //         currY = e.clientY;
-    //         flag = true;
-    //         dot_flag = true;
-    //         if (dot_flag) {
-    //             ctx.beginPath();
-    //             ctx.fillStyle = x;
-    //             ctx.fillRect(currX, currY, 2, 2);
-    //             ctx.closePath();
-    //             dot_flag = false;
-    //         }
-    //     }
-    //     if (res == 'up' || res == "out") {
-    //         flag = false;
-    //     }
-    //     if (res == 'move') {
-    //         if (flag) {
-    //             prevX = currX;
-    //             prevY = currY;
-    //             currX = e.clientX;
-    //             currY = e.clientY;
-    //             draw();
-    //         }
-    //     }
-    // }
-
-    window.addEventListener('mousemove', ()=>{
+    canvasElem.addEventListener('mousemove', ()=>{
         mimi = event.pageY*20;
         inputText.value = mimi;
     });
 
-    // clearbtn.addEventListener('click', clear )
-
     let some = new Sound(0.2,[],false,10,0.01,window);
-    let newCanvas = new CanvasEl(widthElem,heightElem);
-
-    clearbtn.addEventListener('click', newCanvas.clear )
-    // initCanvas();
+    let newCanvas = new CanvasEl(widthElem,canvasH,clearbtn);
