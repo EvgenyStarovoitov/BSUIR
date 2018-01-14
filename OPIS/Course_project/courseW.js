@@ -20,8 +20,8 @@
         canvasW = canvasElem.clientWidth,
         canvasH = canvasElem.clientHeight,
         clicking = false;
-
         console.log(canvasH,canvasW,"\n",widthElem,heightElem)
+
 // Секция по работе с Web Audio API
 
     class Sound {
@@ -32,11 +32,13 @@
             this.speed = speed;
             this.fadeTime = fadeTime;
             this.elm = elm;
+            // Слушаем события мыши и вызываем на основе них нужные функции
             this.elm.addEventListener('mousedown', this.onMouseDown.bind(this));
             this.elm.addEventListener('mouseup', this.onMouseUp.bind(this));
             this.elm.addEventListener('mousemove',this.onMouseMove.bind(this));
             console.log("create a sound element");
         };
+        // при нажатой клавише вызываеться функция createOscillator_ которая создает канал генерации звука
         onMouseDown(){
             console.log('md');
             clicking = true;
@@ -44,22 +46,22 @@
                 return;
             }
             this.osc_ = this.createOscillator_();
-            // this.osc_.frequency.setValueAtTime(mimi, context.currentTime); 
         }
+        // при отжатии клавиши отключении звука
         onMouseUp(){
             clicking = false;
             console.log('mu');
             this.deleteOscillator_();
         }
+        // при передвижении мышки, вычисляетсья координата Y мыши и согласно ее значения, меняться частота звука
         onMouseMove(){
             console.log('mm');
             if (clicking==false) {
                 return;
             };
             this.updatePage()
-            console.log('create a osc');
-
         }
+        // функция для создания канала звука
         createOscillator_(){
             let gain = context.createGain();
             let osc = context.createOscillator();
@@ -72,6 +74,7 @@
             osc.start(0);
             return osc;
         };
+        // функция удаления канала звука
         deleteOscillator_(){
             if (this.osc_) {
                 let endTime = context.currentTime + this.fadeTime;
@@ -80,6 +83,7 @@
                 this.osc_ = null;
             };
         };
+        // фунция изменения частоты звука по координатам мыши
         updatePage(){
             this.osc_.frequency.setValueAtTime(mimi, context.currentTime);  
             console.log(this.osc_.frequency.value, mimi)
@@ -95,13 +99,14 @@
             this.initCanvas();
             this.btn = btn;
             this.btn.addEventListener('click', this.clear.bind(this) )
-
         }
+        // функиця инициальизующая холст дял рисования
         initCanvas(){
             ctx = canvasElem.getContext("2d");
             canvasElem.width = this.width;
             canvasElem.height = this.height;
             console.log("init draw func"); 
+            //навешиваем обработчки событий мыши
             canvasElem.addEventListener("mousemove", (e)=> {
                 this.findCoord('move', e)
             }, false);
@@ -115,6 +120,7 @@
                 this.findCoord('out', e)
             }, false);
         };
+        // функция прорисовки
         draw(){
             ctx.beginPath();
             ctx.moveTo(prevX, prevY);
@@ -124,12 +130,14 @@
             ctx.stroke();
             ctx.closePath();
         };
+        // функция очистки холста
         clear(){
             let m = confirm("Очистить холст?");
             if (m) {
                 ctx.clearRect(0, 0, this.width, this.height);
             };
         };
+        //функция определния координат выши
         findCoord(res,e){
             if (res == 'down') {
                 prevX = currX;
